@@ -135,6 +135,45 @@ router.get('/comparer', async (req, res) => {
     })
 })
 
+// GET /api/recettes/frigo?ingredients=chicken,rice,garlic
+// Les recettes qui contiennent TOUS les ingrédients donnés ("qu'est-ce que je peux cuisiner ?")
+// À déclarer AVANT /:id, comme /hasard et /comparer
+router.get('/frigo', async (req, res) => {
+    if (!req.query.ingredients) {
+        return res.status(400).json({ erreur: 'Il faut donner des ingrédients, ex : ?ingredients=chicken,rice,garlic' })
+    }
+
+    // "Chicken, rice" -> ["chicken", "rice"] (sans espaces, en minuscules, sans les vides)
+    const mots = []
+    for (const mot of req.query.ingredients.split(',')) {
+        if (mot.trim() !== '') {
+            mots.push(mot.trim().toLowerCase())
+        }
+    }
+
+    if (mots.length === 0) {
+        return res.status(400).json({ erreur: 'Il faut donner au moins un ingrédient' })
+    }
+
+    const recettes = await chercherRecettes()
+
+    // On garde une recette seulement si CHAQUE mot (.every) est trouvé
+    // dans AU MOINS UN de ses ingrédients (.some)
+    const trouvees = recettes.filter((recette) =>
+        mots.every((mot) =>
+            recette.ingredients.some((ingredient) =>
+                ingredient.nom.toLowerCase().includes(mot)
+            )
+        )
+    )
+
+    res.json({
+        ingredients: mots,
+        total: trouvees.length,
+        recettes: trouvees
+    })
+})
+
 // GET /api/recettes/:id : une seule recette
 router.get('/:id', async (req, res) => {
     const recette = await chercherUneRecette(req.params.id)
