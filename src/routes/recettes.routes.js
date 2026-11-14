@@ -3,9 +3,39 @@ import { chercherRecettes, chercherUneRecette } from '../services/mealdb.service
 
 const router = Router()
 
-// GET /api/recettes : la liste de toutes les recettes
+// GET /api/recettes : la liste des recettes, avec des filtres facultatifs
+// ex : /api/recettes?categorie=Seafood&pays=Italian&ingredient=garlic&recherche=pasta
 router.get('/', async (req, res) => {
-    const recettes = await chercherRecettes()
+    let recettes = await chercherRecettes()
+
+    // Chaque filtre n'est appliqué que s'il est présent dans l'URL.
+    // On compare tout en minuscules pour ne pas tenir compte des majuscules.
+
+    if (req.query.categorie) {
+        recettes = recettes.filter((recette) =>
+            recette.categorie.toLowerCase() === req.query.categorie.toLowerCase()
+        )
+    }
+
+    if (req.query.pays) {
+        recettes = recettes.filter((recette) =>
+            recette.pays.toLowerCase() === req.query.pays.toLowerCase()
+        )
+    }
+
+    if (req.query.ingredient) {
+        recettes = recettes.filter((recette) =>
+            recette.ingredients.some((ingredient) =>
+                ingredient.nom.toLowerCase().includes(req.query.ingredient.toLowerCase())
+            )
+        )
+    }
+
+    if (req.query.recherche) {
+        recettes = recettes.filter((recette) =>
+            recette.nom.toLowerCase().includes(req.query.recherche.toLowerCase())
+        )
+    }
 
     res.json(recettes)
 })
