@@ -37,7 +37,21 @@ router.get('/', async (req, res) => {
         )
     }
 
-    // Pagination : on découpe la liste (déjà filtrée) en pages de 20 recettes
+    // Tri facultatif : ?tri=nom (A -> Z) ou ?tri=nbIngredients (du plus petit au plus grand)
+    if (req.query.tri) {
+        // .sort() modifie le tableau d'origine : on trie une copie pour ne pas abîmer le cache
+        recettes = recettes.slice()
+
+        if (req.query.tri === 'nom') {
+            recettes.sort((a, b) => a.nom.localeCompare(b.nom))
+        } else if (req.query.tri === 'nbIngredients') {
+            recettes.sort((a, b) => a.nbIngredients - b.nbIngredients)
+        } else {
+            return res.status(400).json({ erreur: 'Tri inconnu : utilisez tri=nom ou tri=nbIngredients' })
+        }
+    }
+
+    // Pagination : on découpe la liste (déjà filtrée et triée) en pages de 20 recettes
     const parPage = 20
     const total = recettes.length
     const nbPages = Math.max(1, Math.ceil(total / parPage)) // au moins 1 page, même vide
