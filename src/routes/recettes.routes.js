@@ -92,6 +92,49 @@ router.get('/hasard', async (req, res) => {
     res.json(recettes[index])
 })
 
+// GET /api/recettes/comparer?ids=52772,52771 : les ingrédients communs à deux recettes
+// À déclarer AVANT /:id, comme /hasard
+router.get('/comparer', async (req, res) => {
+    if (!req.query.ids) {
+        return res.status(400).json({ erreur: 'Il faut donner deux ids, ex : ?ids=52772,52771' })
+    }
+
+    // "52772,52771" -> ["52772", "52771"]
+    const ids = req.query.ids.split(',')
+
+    if (ids.length !== 2) {
+        return res.status(400).json({ erreur: 'Il faut donner exactement deux ids séparés par une virgule' })
+    }
+
+    const recette1 = await chercherUneRecette(ids[0].trim())
+    const recette2 = await chercherUneRecette(ids[1].trim())
+
+    if (recette1 === null || recette2 === null) {
+        return res.status(404).json({ erreur: 'Une des deux recettes est introuvable' })
+    }
+
+    // Les noms des ingrédients de la recette 2, en minuscules
+    const nomsRecette2 = recette2.ingredients.map((ingredient) => ingredient.nom.toLowerCase())
+
+    // On garde les ingrédients de la recette 1 qui sont aussi dans la recette 2
+    const communs = []
+
+    for (const ingredient of recette1.ingredients) {
+        const nom = ingredient.nom.toLowerCase()
+
+        if (nomsRecette2.includes(nom) && !communs.includes(nom)) {
+            communs.push(nom)
+        }
+    }
+
+    res.json({
+        recette1: { id: recette1.id, nom: recette1.nom, nbIngredients: recette1.nbIngredients },
+        recette2: { id: recette2.id, nom: recette2.nom, nbIngredients: recette2.nbIngredients },
+        nbIngredientsCommuns: communs.length,
+        ingredientsCommuns: communs
+    })
+})
+
 // GET /api/recettes/:id : une seule recette
 router.get('/:id', async (req, res) => {
     const recette = await chercherUneRecette(req.params.id)
