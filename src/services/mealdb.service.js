@@ -65,3 +65,23 @@ export async function chercherRecettes() {
     cache = toutes
     return toutes
 }
+
+// Récupère une seule recette grâce à son id (renvoie null si elle n'existe pas)
+export async function chercherUneRecette(id) {
+    const response = await fetch(BASE + '/lookup.php?i=' + id)
+
+    if (!response.ok) {
+        throw new Error('Erreur ' + response.status + ' pour la recette ' + id)
+    }
+
+    const donnees = await response.json()
+
+    // Id inconnu : TheMealDB renvoie quand même un statut 200, pas un 404, avec
+    // { meals: null } (ex : id 1) ou { meals: "Invalid ID" } (ex : id abc).
+    // Dans les deux cas, meals n'est pas un tableau : la recette n'existe pas.
+    if (!Array.isArray(donnees.meals)) {
+        return null
+    }
+
+    return nettoyer(donnees.meals[0])
+}
