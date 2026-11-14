@@ -68,7 +68,7 @@ Le premier appel à une route qui a besoin de toutes les recettes prend environ 
     ├── app.js                      # crée l'app, cors, branche les routes, 404 et erreurs
     ├── routes/
     │   ├── recettes.routes.js      # liste, filtres, tri, pagination, hasard, comparer, frigo, élément, similaires
-    │   ├── stats.routes.js         # statistiques
+    │   ├── stats.routes.js         # statistiques (toutes les recettes, ou un pays)
     │   ├── categories.routes.js    # catégories + nombre de recettes
     │   ├── ingredients.routes.js   # ingrédients les plus utilisés
     │   ├── pays.routes.js          # pays + nombre de recettes, un pays en particulier
@@ -85,6 +85,7 @@ Le premier appel à une route qui a besoin de toutes les recettes prend environ 
 | GET | `/api/recettes` | Liste des recettes (filtres, tri, pagination) |
 | GET | `/api/recettes/:id` | Une recette |
 | GET | `/api/stats` | Statistiques calculées |
+| GET | `/api/stats/pays/:pays` | Statistiques d'un seul pays *(bonus)* |
 | GET | `/api/categories` | Chaque catégorie avec son nombre de recettes *(bonus)* |
 | GET | `/api/ingredients` | Ingrédients les plus utilisés *(bonus)* |
 | GET | `/api/pays` | Chaque pays avec son nombre de recettes *(bonus)* |
@@ -259,6 +260,32 @@ Chiffres calculés par notre code à partir des 790 recettes :
 ```
 
 (Plusieurs recettes ont 20 ingrédients, le maximum de TheMealDB : la route renvoie la première trouvée.)
+
+---
+
+### `GET /api/stats/pays/:pays` : statistiques d'un pays *(bonus)*
+
+http://localhost:3000/api/stats/pays/japanese
+
+Les mêmes calculs que `/api/stats`, mais seulement sur les recettes d'un pays (insensible aux majuscules) :
+
+```json
+{
+  "pays": "Japanese",
+  "total": 9,
+  "parCategorie": { "Chicken": 3, "Seafood": 2, "Side": 1, "Pork": 2, "Vegetarian": 1 },
+  "moyenneIngredients": 8.8,
+  "recetteAvecLePlusDIngredients": { "id": "52820", "nom": "Katsu Chicken curry", "nbIngredients": 16 }
+}
+```
+
+Aucune recette de ce pays (ex : http://localhost:3000/api/stats/pays/Licorne) → **404**
+
+```json
+{ "erreur": "Aucune recette ne vient de ce pays : Licorne" }
+```
+
+Comme pour `/api/pays/:nom`, il faut utiliser le nom écrit dans les recettes (voir `/api/pays`).
 
 ---
 
