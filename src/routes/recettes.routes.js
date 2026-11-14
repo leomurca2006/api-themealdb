@@ -65,6 +65,19 @@ router.get('/', async (req, res) => {
     })
 })
 
+// GET /api/recettes/hasard : une recette au hasard
+// À déclarer AVANT /:id, sinon Express prendrait "hasard" pour un id
+router.get('/hasard', async (req, res) => {
+    const recettes = await chercherRecettes()
+
+    // Math.random() donne un nombre entre 0 et 1 (1 exclu), ex : 0.42
+    // x 790 recettes = 331.8, puis Math.floor arrondit vers le bas = 331
+    // On obtient donc un indice entre 0 et 789
+    const index = Math.floor(Math.random() * recettes.length)
+
+    res.json(recettes[index])
+})
+
 // GET /api/recettes/:id : une seule recette
 router.get('/:id', async (req, res) => {
     const recette = await chercherUneRecette(req.params.id)
