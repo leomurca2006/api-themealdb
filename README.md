@@ -131,6 +131,7 @@ Renvoie 20 recettes par page :
 | `ingredient` | recettes dont un ingrédient contient ce mot | `?ingredient=garlic` |
 | `sansIngredient` | recettes dont **aucun** ingrédient ne contient ces mots, séparés par des virgules (allergies, régimes) *(bonus)* | `?sansIngredient=pork,milk` |
 | `recherche` | recettes dont le nom contient ce mot | `?recherche=chicken` |
+| `maxIngredients` | recettes simples : au maximum ce nombre d'ingrédients *(bonus)* | `?maxIngredients=5` |
 | `tri` | `nom` (A → Z) ou `nbIngredients` (du plus petit au plus grand) *(bonus)* | `?tri=nbIngredients` |
 | `page` | numéro de page (20 recettes par page, 1 par défaut) | `?page=2` |
 
@@ -173,6 +174,8 @@ Autres exemples :
 - http://localhost:3000/api/recettes?sansIngredient=pork → 746 recettes sans porc (44 en contiennent)
 - http://localhost:3000/api/recettes?sansIngredient=pork,beef → 658 recettes sans porc ni bœuf
 - http://localhost:3000/api/recettes?categorie=Dessert&sansIngredient=egg,milk → 35 desserts sans œuf ni lait
+- http://localhost:3000/api/recettes?maxIngredients=5 → 74 recettes avec 5 ingrédients ou moins
+- http://localhost:3000/api/recettes?categorie=Dessert&maxIngredients=5 → 20 desserts simples
 
 Erreurs :
 
@@ -183,6 +186,10 @@ Erreurs :
 - Tri inconnu (`?tri=prix`) → **400**
   ```json
   { "erreur": "Tri inconnu : utilisez tri=nom ou tri=nbIngredients" }
+  ```
+- `maxIngredients` invalide (`?maxIngredients=0`, `?maxIngredients=abc`) → **400**
+  ```json
+  { "erreur": "maxIngredients doit être un nombre entier supérieur à 0" }
   ```
 - Un filtre qui ne trouve rien (`?categorie=Licorne`) n'est pas une erreur : `200` avec `"total": 0` et `"recettes": []`.
 
