@@ -26,6 +26,7 @@ export function nettoyer(recette) {
         categorie: recette.strCategory,
         pays: recette.strArea || 'Inconnu', // certaines recettes n'ont pas de pays (null)
         image: recette.strMealThumb,
+        instructions: recette.strInstructions ? recette.strInstructions.trim() : '',
         ingredients: ingredients,
         nbIngredients: ingredients.length
     }
