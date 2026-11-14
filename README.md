@@ -71,7 +71,8 @@ Le premier appel à une route qui a besoin de toutes les recettes prend environ 
     │   ├── stats.routes.js         # statistiques
     │   ├── categories.routes.js    # catégories + nombre de recettes
     │   ├── ingredients.routes.js   # ingrédients les plus utilisés
-    │   └── pays.routes.js          # pays + nombre de recettes, un pays en particulier
+    │   ├── pays.routes.js          # pays + nombre de recettes, un pays en particulier
+    │   └── menu.routes.js          # menu tiré au sort
     └── services/
         └── mealdb.service.js       # SEUL fichier qui connaît TheMealDB (fetch + nettoyage + cache)
 ```
@@ -88,6 +89,7 @@ Le premier appel à une route qui a besoin de toutes les recettes prend environ 
 | GET | `/api/ingredients` | Ingrédients les plus utilisés *(bonus)* |
 | GET | `/api/pays` | Chaque pays avec son nombre de recettes *(bonus)* |
 | GET | `/api/pays/:nom` | Un pays avec ses recettes *(bonus)* |
+| GET | `/api/menu` | Un menu tiré au sort : entrée, plat, dessert *(bonus)* |
 | GET | `/api/recettes/hasard` | Une recette au hasard *(bonus)* |
 | GET | `/api/recettes/comparer` | Ingrédients communs à deux recettes *(bonus)* |
 | GET | `/api/recettes/frigo` | Recettes qui contiennent tous les ingrédients donnés *(bonus)* |
@@ -321,6 +323,32 @@ Aucune recette de ce pays (ex : http://localhost:3000/api/pays/Licorne) → **40
 ```
 
 Il faut utiliser le nom tel qu'il est écrit dans les recettes (voir `/api/pays`) : `France` fonctionne, mais `French` renvoie un 404.
+
+---
+
+### `GET /api/menu` : un menu tiré au sort *(bonus)*
+
+http://localhost:3000/api/menu
+
+Une entrée, un plat et un dessert tirés au sort (avec `Math.random()`), au même format que `/api/recettes/:id`. Le menu change à chaque appel.
+
+```json
+{
+  "entree": { "id": "...", "nom": "Shawarma bread", "categorie": "Side", "...": "..." },
+  "plat": { "id": "...", "nom": "Vietnamese Grilled Pork (bun-thit-nuong)", "categorie": "Pork", "...": "..." },
+  "dessert": { "id": "...", "nom": "Norwegian Krumkake", "categorie": "Dessert", "...": "..." }
+}
+```
+
+Catégories utilisées :
+
+| Partie | Catégories TheMealDB |
+|---|---|
+| Entrée | Starter, Side |
+| Plat | Beef, Chicken, Lamb, Pork, Seafood, Pasta, Vegetarian, Vegan, Goat |
+| Dessert | Dessert |
+
+Breakfast et Miscellaneous (surtout des sauces et des huiles) ne sont pas utilisées.
 
 ---
 

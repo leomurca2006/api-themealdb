@@ -5,6 +5,7 @@ import statsRoutes from './routes/stats.routes.js'
 import categoriesRoutes from './routes/categories.routes.js'
 import ingredientsRoutes from './routes/ingredients.routes.js'
 import paysRoutes from './routes/pays.routes.js'
+import menuRoutes from './routes/menu.routes.js'
 
 const app = express()
 
@@ -19,6 +20,7 @@ app.use('/api/stats', statsRoutes)
 app.use('/api/categories', categoriesRoutes)
 app.use('/api/ingredients', ingredientsRoutes)
 app.use('/api/pays', paysRoutes)
+app.use('/api/menu', menuRoutes)
 
 // Aucune route ne correspond à l'URL demandée : on répond 404
 app.use((req, res) => {
