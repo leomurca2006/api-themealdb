@@ -67,7 +67,7 @@ Le premier appel à une route qui a besoin de toutes les recettes prend environ 
 └── src/
     ├── app.js                      # crée l'app, cors, branche les routes, 404 et erreurs
     ├── routes/
-    │   ├── recettes.routes.js      # liste, filtres, tri, pagination, hasard, comparer, élément
+    │   ├── recettes.routes.js      # liste, filtres, tri, pagination, hasard, comparer, frigo, élément
     │   ├── stats.routes.js         # statistiques
     │   ├── categories.routes.js    # catégories + nombre de recettes
     │   └── ingredients.routes.js   # ingrédients les plus utilisés
@@ -87,6 +87,7 @@ Le premier appel à une route qui a besoin de toutes les recettes prend environ 
 | GET | `/api/ingredients` | Ingrédients les plus utilisés *(bonus)* |
 | GET | `/api/recettes/hasard` | Une recette au hasard *(bonus)* |
 | GET | `/api/recettes/comparer` | Ingrédients communs à deux recettes *(bonus)* |
+| GET | `/api/recettes/frigo` | Recettes qui contiennent tous les ingrédients donnés *(bonus)* |
 
 ---
 
@@ -306,6 +307,34 @@ Erreurs :
   ```json
   { "erreur": "Une des deux recettes est introuvable" }
   ```
+
+---
+
+### `GET /api/recettes/frigo` : que puis-je cuisiner ? *(bonus)*
+
+http://localhost:3000/api/recettes/frigo?ingredients=chicken,rice,garlic
+
+Renvoie les recettes qui contiennent **tous** les ingrédients donnés (séparés par des virgules, insensible aux majuscules). Un ingrédient est trouvé si son nom contient le mot : `chicken` trouve aussi « chicken stock ». TheMealDB ne propose ce filtre multi-ingrédients que dans sa version payante.
+
+```json
+{
+  "ingredients": ["chicken", "rice", "garlic"],
+  "total": 16,
+  "recettes": [
+    { "id": "...", "nom": "Arroz al horno (baked rice)", "categorie": "...", "pays": "...", "image": "https://...", "instructions": "...", "ingredients": [ ... ], "nbIngredients": ... },
+    { "id": "...", "nom": "Chicken & chorizo rice pot", "...": "..." },
+    ...
+  ]
+}
+```
+
+Plus on donne d'ingrédients, moins il y a de résultats : `chicken` → 118 recettes, `chicken,rice` → 30, `chicken,rice,garlic` → 16.
+
+Pas d'ingrédient (`?ingredients=` ou pas de paramètre) → **400**
+
+```json
+{ "erreur": "Il faut donner des ingrédients, ex : ?ingredients=chicken,rice,garlic" }
+```
 
 ---
 
