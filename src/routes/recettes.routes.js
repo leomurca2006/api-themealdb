@@ -72,6 +72,7 @@ router.get('/', async (req, res) => {
     }
 
     // Tri facultatif : ?tri=nom (A -> Z) ou ?tri=nbIngredients (du plus petit au plus grand)
+    // + ?ordre=desc pour trier dans l'autre sens (Z -> A, ou le plus d'ingrédients d'abord)
     if (req.query.tri) {
         // .sort() modifie le tableau d'origine : on trie une copie pour ne pas abîmer le cache
         recettes = recettes.slice()
@@ -82,6 +83,13 @@ router.get('/', async (req, res) => {
             recettes.sort((a, b) => a.nbIngredients - b.nbIngredients)
         } else {
             return res.status(400).json({ erreur: 'Tri inconnu : utilisez tri=nom ou tri=nbIngredients' })
+        }
+
+        // Ordre : "asc" (croissant, par défaut) ou "desc" (décroissant)
+        if (req.query.ordre === 'desc') {
+            recettes.reverse() // inverse le tableau (c'est déjà une copie, le cache n'est pas touché)
+        } else if (req.query.ordre && req.query.ordre !== 'asc') {
+            return res.status(400).json({ erreur: 'Ordre inconnu : utilisez ordre=asc ou ordre=desc' })
         }
     }
 
