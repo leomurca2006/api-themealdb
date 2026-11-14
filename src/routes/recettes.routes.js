@@ -4,7 +4,7 @@ import { chercherRecettes, chercherUneRecette } from '../services/mealdb.service
 const router = Router()
 
 // GET /api/recettes : la liste des recettes, avec des filtres facultatifs
-// ex : /api/recettes?categorie=Seafood&pays=Italian&ingredient=garlic&sansIngredient=pork&recherche=pasta
+// ex : /api/recettes?categorie=Seafood&pays=Italian&ingredient=garlic&sansIngredient=pork&recherche=pasta&maxIngredients=8
 router.get('/', async (req, res) => {
     let recettes = await chercherRecettes()
 
@@ -58,6 +58,17 @@ router.get('/', async (req, res) => {
         recettes = recettes.filter((recette) =>
             recette.nom.toLowerCase().includes(req.query.recherche.toLowerCase())
         )
+    }
+
+    // Recettes simples : au maximum ce nombre d'ingrédients (ex : ?maxIngredients=5)
+    if (req.query.maxIngredients) {
+        const max = Number(req.query.maxIngredients)
+
+        if (!Number.isInteger(max) || max < 1) {
+            return res.status(400).json({ erreur: 'maxIngredients doit être un nombre entier supérieur à 0' })
+        }
+
+        recettes = recettes.filter((recette) => recette.nbIngredients <= max)
     }
 
     // Tri facultatif : ?tri=nom (A -> Z) ou ?tri=nbIngredients (du plus petit au plus grand)
