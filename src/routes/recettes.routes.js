@@ -4,7 +4,7 @@ import { chercherRecettes, chercherUneRecette } from '../services/mealdb.service
 const router = Router()
 
 // GET /api/recettes : la liste des recettes, avec des filtres facultatifs
-// ex : /api/recettes?categorie=Seafood&pays=Italian&ingredient=garlic&recherche=pasta
+// ex : /api/recettes?categorie=Seafood&pays=Italian&ingredient=garlic&sansIngredient=pork&recherche=pasta
 router.get('/', async (req, res) => {
     let recettes = await chercherRecettes()
 
@@ -27,6 +27,29 @@ router.get('/', async (req, res) => {
         recettes = recettes.filter((recette) =>
             recette.ingredients.some((ingredient) =>
                 ingredient.nom.toLowerCase().includes(req.query.ingredient.toLowerCase())
+            )
+        )
+    }
+
+    // L'inverse de ?ingredient : on garde les recettes qui n'ont AUCUN ingrédient
+    // contenant ces mots (ex : ?sansIngredient=pork,milk pour les recettes sans porc ni lait)
+    if (req.query.sansIngredient) {
+        // String() transforme aussi un paramètre répété (?sansIngredient=pork&sansIngredient=milk),
+        // qu'Express donne sous forme de tableau, en texte "pork,milk"
+        // "pork, Milk" -> ["pork", "milk"] (sans espaces, en minuscules, sans les vides)
+        const exclus = []
+        for (const mot of String(req.query.sansIngredient).split(',')) {
+            if (mot.trim() !== '') {
+                exclus.push(mot.trim().toLowerCase())
+            }
+        }
+
+        // Pour CHAQUE mot exclu (.every), la recette ne doit avoir AUCUN ingrédient (!.some) qui le contient
+        recettes = recettes.filter((recette) =>
+            exclus.every((mot) =>
+                !recette.ingredients.some((ingredient) =>
+                    ingredient.nom.toLowerCase().includes(mot)
+                )
             )
         )
     }
