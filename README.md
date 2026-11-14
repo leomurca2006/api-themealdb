@@ -133,6 +133,7 @@ Renvoie 20 recettes par page :
 | `recherche` | recettes dont le nom contient ce mot | `?recherche=chicken` |
 | `maxIngredients` | recettes simples : au maximum ce nombre d'ingrédients *(bonus)* | `?maxIngredients=5` |
 | `tri` | `nom` (A → Z) ou `nbIngredients` (du plus petit au plus grand) *(bonus)* | `?tri=nbIngredients` |
+| `ordre` | avec `tri` : `asc` (croissant, par défaut) ou `desc` (décroissant : Z → A, le plus d'ingrédients d'abord) *(bonus)* | `?tri=nom&ordre=desc` |
 | `page` | numéro de page (20 recettes par page, 1 par défaut) | `?page=2` |
 
 On **filtre** d'abord, puis on **trie**, puis on **pagine** : `total` et `nbPages` correspondent aux recettes filtrées.
@@ -170,6 +171,8 @@ Autres exemples :
 
 - http://localhost:3000/api/recettes?categorie=Seafood&page=5 → `"page": 5, "nbPages": 5, "total": 84` et 4 recettes
 - http://localhost:3000/api/recettes?categorie=Dessert&tri=nbIngredients → les 167 desserts, en commençant par *Caribbean Tamarind balls* (2 ingrédients)
+- http://localhost:3000/api/recettes?categorie=Dessert&tri=nbIngredients&ordre=desc → les desserts les plus complexes d'abord (*Battenberg Cake*, 20 ingrédients)
+- http://localhost:3000/api/recettes?tri=nom&ordre=desc → de Z à A (*Zemiakové Placky*, *Zeeuwse bolussen*…)
 - http://localhost:3000/api/recettes?ingredient=garlic&recherche=chicken
 - http://localhost:3000/api/recettes?sansIngredient=pork → 746 recettes sans porc (44 en contiennent)
 - http://localhost:3000/api/recettes?sansIngredient=pork,beef → 658 recettes sans porc ni bœuf
@@ -190,6 +193,10 @@ Erreurs :
 - `maxIngredients` invalide (`?maxIngredients=0`, `?maxIngredients=abc`) → **400**
   ```json
   { "erreur": "maxIngredients doit être un nombre entier supérieur à 0" }
+  ```
+- Ordre inconnu (`?tri=nom&ordre=hasard`) → **400**
+  ```json
+  { "erreur": "Ordre inconnu : utilisez ordre=asc ou ordre=desc" }
   ```
 - Un filtre qui ne trouve rien (`?categorie=Licorne`) n'est pas une erreur : `200` avec `"total": 0` et `"recettes": []`.
 
