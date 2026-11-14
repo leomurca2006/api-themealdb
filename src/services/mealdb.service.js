@@ -85,3 +85,22 @@ export async function chercherUneRecette(id) {
 
     return nettoyer(donnees.meals[0])
 }
+
+// Récupère la liste des catégories (Beef, Chicken, Dessert...) avec leur image
+export async function chercherCategories() {
+    const response = await fetch(BASE + '/categories.php')
+
+    if (!response.ok) {
+        throw new Error('Erreur ' + response.status + ' pour les catégories')
+    }
+
+    const donnees = await response.json()
+
+    // On ne garde que ce qui nous intéresse, avec des noms en français
+    return donnees.categories.map((categorie) => {
+        return {
+            nom: categorie.strCategory,
+            image: categorie.strCategoryThumb
+        }
+    })
+}

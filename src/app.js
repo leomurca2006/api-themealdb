@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import recettesRoutes from './routes/recettes.routes.js'
 import statsRoutes from './routes/stats.routes.js'
+import categoriesRoutes from './routes/categories.routes.js'
 
 const app = express()
 
@@ -13,6 +14,7 @@ app.get('/health', (req, res) => {
 
 app.use('/api/recettes', recettesRoutes)
 app.use('/api/stats', statsRoutes)
+app.use('/api/categories', categoriesRoutes)
 
 // Aucune route ne correspond à l'URL demandée : on répond 404
 app.use((req, res) => {
