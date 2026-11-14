@@ -126,6 +126,7 @@ Renvoie 20 recettes par page :
 | `categorie` | catégorie exacte (insensible aux majuscules) | `?categorie=Seafood` |
 | `pays` | pays exact (insensible aux majuscules) | `?pays=Italian` |
 | `ingredient` | recettes dont un ingrédient contient ce mot | `?ingredient=garlic` |
+| `sansIngredient` | recettes dont **aucun** ingrédient ne contient ces mots, séparés par des virgules (allergies, régimes) *(bonus)* | `?sansIngredient=pork,milk` |
 | `recherche` | recettes dont le nom contient ce mot | `?recherche=chicken` |
 | `tri` | `nom` (A → Z) ou `nbIngredients` (du plus petit au plus grand) *(bonus)* | `?tri=nbIngredients` |
 | `page` | numéro de page (20 recettes par page, 1 par défaut) | `?page=2` |
@@ -166,6 +167,9 @@ Autres exemples :
 - http://localhost:3000/api/recettes?categorie=Seafood&page=5 → `"page": 5, "nbPages": 5, "total": 84` et 4 recettes
 - http://localhost:3000/api/recettes?categorie=Dessert&tri=nbIngredients → les 167 desserts, en commençant par *Caribbean Tamarind balls* (2 ingrédients)
 - http://localhost:3000/api/recettes?ingredient=garlic&recherche=chicken
+- http://localhost:3000/api/recettes?sansIngredient=pork → 746 recettes sans porc (44 en contiennent)
+- http://localhost:3000/api/recettes?sansIngredient=pork,beef → 658 recettes sans porc ni bœuf
+- http://localhost:3000/api/recettes?categorie=Dessert&sansIngredient=egg,milk → 35 desserts sans œuf ni lait
 
 Erreurs :
 
