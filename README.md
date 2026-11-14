@@ -71,7 +71,7 @@ Le premier appel à une route qui a besoin de toutes les recettes prend environ 
     │   ├── stats.routes.js         # statistiques
     │   ├── categories.routes.js    # catégories + nombre de recettes
     │   ├── ingredients.routes.js   # ingrédients les plus utilisés
-    │   └── pays.routes.js          # pays + nombre de recettes
+    │   └── pays.routes.js          # pays + nombre de recettes, un pays en particulier
     └── services/
         └── mealdb.service.js       # SEUL fichier qui connaît TheMealDB (fetch + nettoyage + cache)
 ```
@@ -87,6 +87,7 @@ Le premier appel à une route qui a besoin de toutes les recettes prend environ 
 | GET | `/api/categories` | Chaque catégorie avec son nombre de recettes *(bonus)* |
 | GET | `/api/ingredients` | Ingrédients les plus utilisés *(bonus)* |
 | GET | `/api/pays` | Chaque pays avec son nombre de recettes *(bonus)* |
+| GET | `/api/pays/:nom` | Un pays avec ses recettes *(bonus)* |
 | GET | `/api/recettes/hasard` | Une recette au hasard *(bonus)* |
 | GET | `/api/recettes/comparer` | Ingrédients communs à deux recettes *(bonus)* |
 | GET | `/api/recettes/frigo` | Recettes qui contiennent tous les ingrédients donnés *(bonus)* |
@@ -278,6 +279,33 @@ Les 38 pays présents dans les recettes, du plus au moins représenté :
 ```
 
 Les noms sont ceux à utiliser dans le filtre `?pays=` (ex : http://localhost:3000/api/recettes?pays=British). La liste est calculée à partir des recettes et non avec `list.php?a=list` de TheMealDB, qui contient 195 pays (la plupart sans recette) avec des noms différents de ceux des recettes (« French » au lieu de « France »).
+
+---
+
+### `GET /api/pays/:nom` : un pays en particulier *(bonus)*
+
+http://localhost:3000/api/pays/british
+
+Le pays (insensible aux majuscules), son nombre de recettes et la liste de ses recettes (l'essentiel de chacune ; le détail complet est dans `/api/recettes/:id`) :
+
+```json
+{
+  "nom": "British",
+  "nbRecettes": 59,
+  "recettes": [
+    { "id": "52893", "nom": "Apple & Blackberry Crumble", "categorie": "Dessert", "image": "https://..." },
+    ...
+  ]
+}
+```
+
+Aucune recette de ce pays (ex : http://localhost:3000/api/pays/Licorne) → **404**
+
+```json
+{ "erreur": "Aucune recette ne vient de ce pays : Licorne" }
+```
+
+Il faut utiliser le nom tel qu'il est écrit dans les recettes (voir `/api/pays`) : `France` fonctionne, mais `French` renvoie un 404.
 
 ---
 
