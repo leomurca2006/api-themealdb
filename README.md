@@ -7,7 +7,7 @@ C'est la transposition du projet vu en cours (une API qui appelait l'API Rick an
 ## Ce que fait l'API
 
 - Elle récupère **toutes les recettes** de TheMealDB : comme TheMealDB n'a pas de route « toutes les recettes », elle les cherche lettre par lettre (`search.php?f=a` → `z`), soit **790 recettes**.
-- Elle **transforme** chaque recette : les champs sont renommés en français et les 20 champs `strIngredient1…20` / `strMeasure1…20` deviennent une seule liste `ingredients`, sans les champs vides.
+- Elle **transforme** chaque recette : les champs sont renommés en français et les 20 champs `strIngredient1…20` / `strMeasure1…20` deviennent une seule liste `ingredients`, sans les champs vides. Chaque recette contient aussi ses `instructions` de préparation (en anglais).
 - Elle garde les recettes **en cache** (en mémoire) pour ne pas refaire les 26 appels à chaque requête.
 - Elle **calcule** des chiffres qui n'existent pas dans TheMealDB (statistiques, ingrédients les plus utilisés, ingrédients communs…).
 
@@ -19,7 +19,8 @@ TheMealDB renvoie :
 
 ```json
 { "idMeal": "52772", "strMeal": "Teriyaki Chicken Casserole", "strCategory": "Chicken", "strArea": "Japanese",
-  "strMealThumb": "https://...jpg", "strIngredient1": "soy sauce", "strMeasure1": "3/4 cup", "...": "...",
+  "strMealThumb": "https://...jpg", "strInstructions": "Preheat oven...",
+  "strIngredient1": "soy sauce", "strMeasure1": "3/4 cup", "...": "...",
   "strIngredient10": "", "strIngredient11": null, "...": "jusqu'à strIngredient20" }
 ```
 
@@ -32,6 +33,7 @@ Notre API renvoie :
   "categorie": "Chicken",
   "pays": "Japanese",
   "image": "https://www.themealdb.com/images/media/meals/wvpsxx1468256321.jpg",
+  "instructions": "Preheat oven to 350° F. Spray a 9x13-inch baking pan with non-stick spray.\r\nCombine soy sauce, ...",
   "ingredients": [
     { "nom": "soy sauce", "quantite": "3/4 cup" },
     { "nom": "water", "quantite": "1/2 cup" }
@@ -110,7 +112,7 @@ Renvoie 20 recettes par page :
   "nbPages": 40,
   "total": 790,
   "recettes": [
-    { "id": "53483", "nom": "Acaraje black-eyed pea fritters with shrimp filling", "categorie": "Seafood", "pays": "Inconnu", "image": "https://...", "ingredients": [ ... ], "nbIngredients": 18 },
+    { "id": "53483", "nom": "Acaraje black-eyed pea fritters with shrimp filling", "categorie": "Seafood", "pays": "Inconnu", "image": "https://...", "instructions": "...", "ingredients": [ ... ], "nbIngredients": 18 },
     ...
   ]
 }
@@ -143,6 +145,7 @@ Exemple combiné : http://localhost:3000/api/recettes?categorie=Seafood&pays=Jap
       "categorie": "Seafood",
       "pays": "Japanese",
       "image": "https://www.themealdb.com/images/media/meals/xxyupu1468262513.jpg",
+      "instructions": "Mix all the ingredients in the Honey Teriyaki Glaze together. Whisk to blend well. ...",
       "ingredients": [
         { "nom": "Salmon", "quantite": "1 lb" },
         { "nom": "Olive oil", "quantite": "1 tablespoon" },
@@ -188,6 +191,7 @@ http://localhost:3000/api/recettes/52772
   "categorie": "Chicken",
   "pays": "Japanese",
   "image": "https://www.themealdb.com/images/media/meals/wvpsxx1468256321.jpg",
+  "instructions": "Preheat oven to 350° F. Spray a 9x13-inch baking pan with non-stick spray.\r\nCombine soy sauce, ...",
   "ingredients": [
     { "nom": "soy sauce", "quantite": "3/4 cup" },
     { "nom": "water", "quantite": "1/2 cup" },
