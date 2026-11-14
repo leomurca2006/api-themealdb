@@ -37,7 +37,32 @@ router.get('/', async (req, res) => {
         )
     }
 
-    res.json(recettes)
+    // Pagination : on découpe la liste (déjà filtrée) en pages de 20 recettes
+    const parPage = 20
+    const total = recettes.length
+    const nbPages = Math.max(1, Math.ceil(total / parPage)) // au moins 1 page, même vide
+
+    // Page 1 par défaut si ?page n'est pas dans l'URL
+    let page = 1
+    if (req.query.page) {
+        page = Number(req.query.page)
+    }
+
+    // Page qui n'existe pas : 0, négative, trop grande, ou pas un nombre entier (ex : ?page=abc)
+    if (!Number.isInteger(page) || page < 1 || page > nbPages) {
+        return res.status(404).json({ erreur: 'Page inexistante (il y a ' + nbPages + ' page(s))' })
+    }
+
+    // Page 1 -> recettes 0 à 19, page 2 -> recettes 20 à 39, etc.
+    const debut = (page - 1) * parPage
+    const recettesDeLaPage = recettes.slice(debut, debut + parPage)
+
+    res.json({
+        page: page,
+        nbPages: nbPages,
+        total: total,
+        recettes: recettesDeLaPage
+    })
 })
 
 // GET /api/recettes/:id : une seule recette
