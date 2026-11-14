@@ -67,7 +67,7 @@ Le premier appel à une route qui a besoin de toutes les recettes prend environ 
 └── src/
     ├── app.js                      # crée l'app, cors, branche les routes, 404 et erreurs
     ├── routes/
-    │   ├── recettes.routes.js      # liste, filtres, tri, pagination, hasard, comparer, frigo, élément
+    │   ├── recettes.routes.js      # liste, filtres, tri, pagination, hasard, comparer, frigo, élément, similaires
     │   ├── stats.routes.js         # statistiques
     │   ├── categories.routes.js    # catégories + nombre de recettes
     │   ├── ingredients.routes.js   # ingrédients les plus utilisés
@@ -91,6 +91,7 @@ Le premier appel à une route qui a besoin de toutes les recettes prend environ 
 | GET | `/api/recettes/hasard` | Une recette au hasard *(bonus)* |
 | GET | `/api/recettes/comparer` | Ingrédients communs à deux recettes *(bonus)* |
 | GET | `/api/recettes/frigo` | Recettes qui contiennent tous les ingrédients donnés *(bonus)* |
+| GET | `/api/recettes/:id/similaires` | Les 5 recettes les plus proches d'une recette *(bonus)* |
 
 ---
 
@@ -376,6 +377,40 @@ Erreurs :
   ```json
   { "erreur": "Une des deux recettes est introuvable" }
   ```
+
+---
+
+### `GET /api/recettes/:id/similaires` : recettes similaires *(bonus)*
+
+http://localhost:3000/api/recettes/52894/similaires
+
+Les 5 recettes qui ont le plus d'ingrédients en commun avec la recette donnée (même calcul que `comparer`, fait avec toutes les recettes) :
+
+```json
+{
+  "recette": { "id": "52894", "nom": "Battenberg Cake", "nbIngredients": 20 },
+  "similaires": [
+    {
+      "id": "...",
+      "nom": "Rock Cakes",
+      "categorie": "Dessert",
+      "image": "https://...",
+      "nbIngredientsCommuns": 6,
+      "ingredientsCommuns": ["self-raising flour", "caster sugar", "baking powder", "butter", "eggs", "vanilla extract"]
+    },
+    { "nom": "Chocolate Coconut Squares", "nbIngredientsCommuns": 5, "...": "..." },
+    ...
+  ]
+}
+```
+
+Les ingrédients très courants (`water`, `salt`, `olive oil`…) comptent aussi : pour une recette avec peu d'ingrédients, les « similaires » peuvent n'avoir en commun que ces ingrédients de base.
+
+Id inconnu (http://localhost:3000/api/recettes/1/similaires) → **404**
+
+```json
+{ "erreur": "Recette introuvable" }
+```
 
 ---
 

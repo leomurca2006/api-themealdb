@@ -227,4 +227,56 @@ router.get('/:id', async (req, res) => {
     res.json(recette)
 })
 
+// GET /api/recettes/:id/similaires : les 5 recettes qui ont le plus d'ingrédients en commun
+router.get('/:id/similaires', async (req, res) => {
+    const recette = await chercherUneRecette(req.params.id)
+
+    if (recette === null) {
+        return res.status(404).json({ erreur: 'Recette introuvable' })
+    }
+
+    // Les noms des ingrédients de la recette de départ, en minuscules
+    const nomsDeDepart = recette.ingredients.map((ingredient) => ingredient.nom.toLowerCase())
+
+    const recettes = await chercherRecettes()
+    const similaires = []
+
+    for (const autre of recettes) {
+        // On ne compare pas la recette avec elle-même
+        if (autre.id === recette.id) {
+            continue
+        }
+
+        // Les ingrédients de l'autre recette qui sont aussi dans la recette de départ
+        const communs = []
+        for (const ingredient of autre.ingredients) {
+            const nom = ingredient.nom.toLowerCase()
+
+            if (nomsDeDepart.includes(nom) && !communs.includes(nom)) {
+                communs.push(nom)
+            }
+        }
+
+        // On ne garde que les recettes qui ont au moins un ingrédient en commun
+        if (communs.length > 0) {
+            similaires.push({
+                id: autre.id,
+                nom: autre.nom,
+                categorie: autre.categorie,
+                image: autre.image,
+                nbIngredientsCommuns: communs.length,
+                ingredientsCommuns: communs
+            })
+        }
+    }
+
+    // Trier : le plus d'ingrédients en commun d'abord, puis garder les 5 premières
+    similaires.sort((a, b) => b.nbIngredientsCommuns - a.nbIngredientsCommuns)
+
+    res.json({
+        recette: { id: recette.id, nom: recette.nom, nbIngredients: recette.nbIngredients },
+        similaires: similaires.slice(0, 5)
+    })
+})
+
 export default router
