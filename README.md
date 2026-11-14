@@ -70,7 +70,8 @@ Le premier appel à une route qui a besoin de toutes les recettes prend environ 
     │   ├── recettes.routes.js      # liste, filtres, tri, pagination, hasard, comparer, frigo, élément
     │   ├── stats.routes.js         # statistiques
     │   ├── categories.routes.js    # catégories + nombre de recettes
-    │   └── ingredients.routes.js   # ingrédients les plus utilisés
+    │   ├── ingredients.routes.js   # ingrédients les plus utilisés
+    │   └── pays.routes.js          # pays + nombre de recettes
     └── services/
         └── mealdb.service.js       # SEUL fichier qui connaît TheMealDB (fetch + nettoyage + cache)
 ```
@@ -85,6 +86,7 @@ Le premier appel à une route qui a besoin de toutes les recettes prend environ 
 | GET | `/api/stats` | Statistiques calculées |
 | GET | `/api/categories` | Chaque catégorie avec son nombre de recettes *(bonus)* |
 | GET | `/api/ingredients` | Ingrédients les plus utilisés *(bonus)* |
+| GET | `/api/pays` | Chaque pays avec son nombre de recettes *(bonus)* |
 | GET | `/api/recettes/hasard` | Une recette au hasard *(bonus)* |
 | GET | `/api/recettes/comparer` | Ingrédients communs à deux recettes *(bonus)* |
 | GET | `/api/recettes/frigo` | Recettes qui contiennent tous les ingrédients donnés *(bonus)* |
@@ -255,6 +257,27 @@ Les 14 catégories de TheMealDB, avec le nombre de recettes de chacune :
   ...
 ]
 ```
+
+---
+
+### `GET /api/pays` : pays *(bonus)*
+
+http://localhost:3000/api/pays
+
+Les 38 pays présents dans les recettes, du plus au moins représenté :
+
+```json
+[
+  { "nom": "Inconnu", "nbRecettes": 190 },
+  { "nom": "British", "nbRecettes": 59 },
+  { "nom": "Spanish", "nbRecettes": 48 },
+  { "nom": "United States", "nbRecettes": 33 },
+  ...
+  { "nom": "Slovakia", "nbRecettes": 4 }
+]
+```
+
+Les noms sont ceux à utiliser dans le filtre `?pays=` (ex : http://localhost:3000/api/recettes?pays=British). La liste est calculée à partir des recettes et non avec `list.php?a=list` de TheMealDB, qui contient 195 pays (la plupart sans recette) avec des noms différents de ceux des recettes (« French » au lieu de « France »).
 
 ---
 
