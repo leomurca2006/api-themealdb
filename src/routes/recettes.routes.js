@@ -3,6 +3,23 @@ import { chercherRecettes, chercherUneRecette } from '../services/mealdb.service
 
 const router = Router()
 
+// Transforme un paramètre de l'URL en liste de mots propres.
+// Accepte une liste avec des virgules (?categorie=Beef,Pork) ET un paramètre répété
+// (?categorie=Beef&categorie=Pork) : dans ce cas Express donne un tableau ['Beef', 'Pork'],
+// que String() transforme en texte "Beef,Pork".
+// "Beef, PORK" -> ["beef", "pork"] (sans espaces, en minuscules, sans les vides)
+function lireListe(valeur) {
+    const mots = []
+
+    for (const mot of String(valeur).split(',')) {
+        if (mot.trim() !== '') {
+            mots.push(mot.trim().toLowerCase())
+        }
+    }
+
+    return mots
+}
+
 // GET /api/recettes : la liste des recettes, avec des filtres facultatifs
 // ex : /api/recettes?categorie=Seafood&pays=Italian&ingredient=garlic&sansIngredient=pork&recherche=pasta&maxIngredients=8
 router.get('/', async (req, res) => {
@@ -10,23 +27,35 @@ router.get('/', async (req, res) => {
 
     // Chaque filtre n'est appliqué que s'il est présent dans l'URL.
     // On compare tout en minuscules pour ne pas tenir compte des majuscules.
+    // Chaque filtre accepte plusieurs valeurs (virgules ou paramètre répété).
 
+    // Catégorie : la recette doit être dans UNE des catégories (ex : ?categorie=Beef,Pork -> bœuf OU porc)
     if (req.query.categorie) {
+        const categories = lireListe(req.query.categorie)
+
         recettes = recettes.filter((recette) =>
-            recette.categorie.toLowerCase() === req.query.categorie.toLowerCase()
+            categories.includes(recette.categorie.toLowerCase())
         )
     }
 
+    // Pays : la recette doit venir d'UN des pays (ex : ?pays=British,France)
     if (req.query.pays) {
+        const pays = lireListe(req.query.pays)
+
         recettes = recettes.filter((recette) =>
-            recette.pays.toLowerCase() === req.query.pays.toLowerCase()
+            pays.includes(recette.pays.toLowerCase())
         )
     }
 
+    // Ingrédient : la recette doit contenir TOUS les mots (ex : ?ingredient=garlic,rice -> ail ET riz)
     if (req.query.ingredient) {
+        const mots = lireListe(req.query.ingredient)
+
         recettes = recettes.filter((recette) =>
-            recette.ingredients.some((ingredient) =>
-                ingredient.nom.toLowerCase().includes(req.query.ingredient.toLowerCase())
+            mots.every((mot) =>
+                recette.ingredients.some((ingredient) =>
+                    ingredient.nom.toLowerCase().includes(mot)
+                )
             )
         )
     }
@@ -34,15 +63,7 @@ router.get('/', async (req, res) => {
     // L'inverse de ?ingredient : on garde les recettes qui n'ont AUCUN ingrédient
     // contenant ces mots (ex : ?sansIngredient=pork,milk pour les recettes sans porc ni lait)
     if (req.query.sansIngredient) {
-        // String() transforme aussi un paramètre répété (?sansIngredient=pork&sansIngredient=milk),
-        // qu'Express donne sous forme de tableau, en texte "pork,milk"
-        // "pork, Milk" -> ["pork", "milk"] (sans espaces, en minuscules, sans les vides)
-        const exclus = []
-        for (const mot of String(req.query.sansIngredient).split(',')) {
-            if (mot.trim() !== '') {
-                exclus.push(mot.trim().toLowerCase())
-            }
-        }
+        const exclus = lireListe(req.query.sansIngredient)
 
         // Pour CHAQUE mot exclu (.every), la recette ne doit avoir AUCUN ingrédient (!.some) qui le contient
         recettes = recettes.filter((recette) =>
@@ -54,9 +75,12 @@ router.get('/', async (req, res) => {
         )
     }
 
+    // Recherche : le nom doit contenir TOUS les mots (ex : ?recherche=chicken,curry)
     if (req.query.recherche) {
+        const mots = lireListe(req.query.recherche)
+
         recettes = recettes.filter((recette) =>
-            recette.nom.toLowerCase().includes(req.query.recherche.toLowerCase())
+            mots.every((mot) => recette.nom.toLowerCase().includes(mot))
         )
     }
 
@@ -141,15 +165,15 @@ router.get('/comparer', async (req, res) => {
         return res.status(400).json({ erreur: 'Il faut donner deux ids, ex : ?ids=52772,52771' })
     }
 
-    // "52772,52771" -> ["52772", "52771"]
-    const ids = req.query.ids.split(',')
+    // "52772,52771" (ou ?ids=52772&ids=52771) -> ["52772", "52771"]
+    const ids = lireListe(req.query.ids)
 
     if (ids.length !== 2) {
         return res.status(400).json({ erreur: 'Il faut donner exactement deux ids séparés par une virgule' })
     }
 
-    const recette1 = await chercherUneRecette(ids[0].trim())
-    const recette2 = await chercherUneRecette(ids[1].trim())
+    const recette1 = await chercherUneRecette(ids[0])
+    const recette2 = await chercherUneRecette(ids[1])
 
     if (recette1 === null || recette2 === null) {
         return res.status(404).json({ erreur: 'Une des deux recettes est introuvable' })
@@ -185,13 +209,8 @@ router.get('/frigo', async (req, res) => {
         return res.status(400).json({ erreur: 'Il faut donner des ingrédients, ex : ?ingredients=chicken,rice,garlic' })
     }
 
-    // "Chicken, rice" -> ["chicken", "rice"] (sans espaces, en minuscules, sans les vides)
-    const mots = []
-    for (const mot of req.query.ingredients.split(',')) {
-        if (mot.trim() !== '') {
-            mots.push(mot.trim().toLowerCase())
-        }
-    }
+    // "Chicken, rice" (ou ?ingredients=chicken&ingredients=rice) -> ["chicken", "rice"]
+    const mots = lireListe(req.query.ingredients)
 
     if (mots.length === 0) {
         return res.status(400).json({ erreur: 'Il faut donner au moins un ingrédient' })

@@ -130,15 +130,17 @@ Renvoie 20 recettes par page :
 
 | Paramètre | Effet | Exemple |
 |---|---|---|
-| `categorie` | catégorie exacte (insensible aux majuscules) | `?categorie=Seafood` |
-| `pays` | pays exact (insensible aux majuscules) | `?pays=Italian` |
-| `ingredient` | recettes dont un ingrédient contient ce mot | `?ingredient=garlic` |
-| `sansIngredient` | recettes dont **aucun** ingrédient ne contient ces mots, séparés par des virgules (allergies, régimes) *(bonus)* | `?sansIngredient=pork,milk` |
-| `recherche` | recettes dont le nom contient ce mot | `?recherche=chicken` |
+| `categorie` | catégorie exacte ; avec plusieurs : **une** des catégories | `?categorie=Seafood` · `?categorie=Beef,Pork` |
+| `pays` | pays exact ; avec plusieurs : **un** des pays | `?pays=Italian` · `?pays=British,France` |
+| `ingredient` | recettes dont un ingrédient contient ce mot ; avec plusieurs : **tous** les mots | `?ingredient=garlic` · `?ingredient=garlic,rice` |
+| `sansIngredient` | recettes dont **aucun** ingrédient ne contient ces mots (allergies, régimes) *(bonus)* | `?sansIngredient=pork,milk` |
+| `recherche` | recettes dont le nom contient ce mot ; avec plusieurs : **tous** les mots | `?recherche=chicken` · `?recherche=chicken,curry` |
 | `maxIngredients` | recettes simples : au maximum ce nombre d'ingrédients *(bonus)* | `?maxIngredients=5` |
 | `tri` | `nom` (A → Z) ou `nbIngredients` (du plus petit au plus grand) *(bonus)* | `?tri=nbIngredients` |
 | `ordre` | avec `tri` : `asc` (croissant, par défaut) ou `desc` (décroissant : Z → A, le plus d'ingrédients d'abord) *(bonus)* | `?tri=nom&ordre=desc` |
 | `page` | numéro de page (20 recettes par page, 1 par défaut) | `?page=2` |
+
+Les filtres sont insensibles aux majuscules. Plusieurs valeurs s'écrivent avec des virgules (`?categorie=Beef,Pork`) ou en répétant le paramètre (`?categorie=Beef&categorie=Pork`) : les deux écritures donnent le même résultat.
 
 On **filtre** d'abord, puis on **trie**, puis on **pagine** : `total` et `nbPages` correspondent aux recettes filtrées.
 
@@ -178,6 +180,8 @@ Autres exemples :
 - http://localhost:3000/api/recettes?categorie=Dessert&tri=nbIngredients&ordre=desc → les desserts les plus complexes d'abord (*Battenberg Cake*, 20 ingrédients)
 - http://localhost:3000/api/recettes?tri=nom&ordre=desc → de Z à A (*Zemiakové Placky*, *Zeeuwse bolussen*…)
 - http://localhost:3000/api/recettes?ingredient=garlic&recherche=chicken
+- http://localhost:3000/api/recettes?categorie=Beef,Pork → 155 recettes (95 au bœuf + 60 au porc)
+- http://localhost:3000/api/recettes?pays=British&pays=France → 87 recettes britanniques ou françaises
 - http://localhost:3000/api/recettes?sansIngredient=pork → 746 recettes sans porc (44 en contiennent)
 - http://localhost:3000/api/recettes?sansIngredient=pork,beef → 658 recettes sans porc ni bœuf
 - http://localhost:3000/api/recettes?categorie=Dessert&sansIngredient=egg,milk → 35 desserts sans œuf ni lait
