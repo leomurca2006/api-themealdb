@@ -23,8 +23,17 @@ router.get('/', async (req, res) => {
     const compteur = {}
 
     for (const recette of recettes) {
+        // Certaines recettes listent 2 fois le même ingrédient (ex : "Salt" et "salt") :
+        // on ne compte chaque ingrédient qu'une fois par recette
+        const dejaVus = []
+
         for (const ingredient of recette.ingredients) {
             const nom = ingredient.nom.toLowerCase()
+
+            if (dejaVus.includes(nom)) {
+                continue
+            }
+            dejaVus.push(nom)
 
             if (compteur[nom]) {
                 compteur[nom] = compteur[nom] + 1

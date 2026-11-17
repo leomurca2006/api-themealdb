@@ -57,6 +57,70 @@ Le serveur démarre sur **http://localhost:3000**. Avec `--watch`, il redémarre
 
 Le premier appel à une route qui a besoin de toutes les recettes prend environ 1 seconde (26 appels à TheMealDB) ; les suivants sont instantanés grâce au cache.
 
+> http://localhost:3000 tout seul renvoie `{ "erreur": "Route inconnue : /" }` : c'est normal, l'API n'a pas de page d'accueil. Il faut ajouter une route, par exemple http://localhost:3000/health.
+
+## Tester toutes les routes
+
+Il suffit de cliquer sur les liens une fois le serveur lancé. Chaque ligne indique le code HTTP attendu et ce qu'on doit voir.
+
+**Recettes : liste, filtres, tri, pagination**
+
+| Lien | Code | Résultat attendu |
+|---|---|---|
+| http://localhost:3000/health | 200 | `{ "statut": "ok", "version": "1.0.0" }` |
+| http://localhost:3000/api/recettes | 200 | page 1 sur 40, 790 recettes, 20 par page |
+| http://localhost:3000/api/recettes?page=2 | 200 | page 2 (commence par *Apple Pie*) |
+| http://localhost:3000/api/recettes?categorie=Beef,Pork | 200 | 155 recettes (bœuf ou porc) |
+| http://localhost:3000/api/recettes?categorie=Beef&categorie=Pork | 200 | les mêmes 155 recettes (paramètre répété) |
+| http://localhost:3000/api/recettes?pays=British,Italian | 200 | 80 recettes |
+| http://localhost:3000/api/recettes?ingredient=garlic,rice | 200 | 49 recettes (ail **et** riz) |
+| http://localhost:3000/api/recettes?sansIngredient=pork,milk | 200 | 567 recettes sans porc ni lait |
+| http://localhost:3000/api/recettes?recherche=chicken,curry | 200 | 6 recettes |
+| http://localhost:3000/api/recettes?maxIngredients=5 | 200 | 74 recettes |
+| http://localhost:3000/api/recettes?tri=nom&ordre=desc | 200 | de Z à A (*Zemiakové Placky* en premier) |
+| http://localhost:3000/api/recettes?tri=nbIngredients&ordre=desc | 200 | *Szechuan Beef* (20 ingrédients) en premier |
+| http://localhost:3000/api/recettes?categorie=Seafood&pays=Japanese&ingredient=soy&tri=nom | 200 | tous les filtres combinés : 2 recettes |
+| http://localhost:3000/api/recettes?maxIngredients=abc | 400 | `maxIngredients doit être un nombre entier supérieur à 0` |
+| http://localhost:3000/api/recettes?tri=xyz | 400 | `Tri inconnu` |
+| http://localhost:3000/api/recettes?tri=nom&ordre=xyz | 400 | `Ordre inconnu` |
+| http://localhost:3000/api/recettes?page=0 | 404 | `Page inexistante (il y a 40 page(s))` (pareil avec `page=999` ou `page=abc`) |
+
+**Recettes : routes particulières**
+
+| Lien | Code | Résultat attendu |
+|---|---|---|
+| http://localhost:3000/api/recettes/52772 | 200 | *Teriyaki Chicken Casserole*, 9 ingrédients |
+| http://localhost:3000/api/recettes/1 | 404 | `Recette introuvable` |
+| http://localhost:3000/api/recettes/hasard | 200 | une recette différente à chaque appel |
+| http://localhost:3000/api/recettes/comparer?ids=52772,52771 | 200 | les ingrédients communs aux deux recettes |
+| http://localhost:3000/api/recettes/comparer | 400 | il manque les ids |
+| http://localhost:3000/api/recettes/comparer?ids=52772 | 400 | un seul id au lieu de deux |
+| http://localhost:3000/api/recettes/comparer?ids=52772,1 | 404 | `Une des deux recettes est introuvable` |
+| http://localhost:3000/api/recettes/frigo?ingredients=chicken,rice,garlic | 200 | 16 recettes |
+| http://localhost:3000/api/recettes/frigo | 400 | il manque les ingrédients |
+| http://localhost:3000/api/recettes/frigo?ingredients=, | 400 | `Il faut donner au moins un ingrédient` |
+| http://localhost:3000/api/recettes/52772/similaires | 200 | les 5 recettes les plus proches |
+| http://localhost:3000/api/recettes/1/similaires | 404 | `Recette introuvable` |
+
+**Statistiques, catégories, ingrédients, pays, menu**
+
+| Lien | Code | Résultat attendu |
+|---|---|---|
+| http://localhost:3000/api/stats | 200 | 790 recettes, moyenne 10.3 ingrédients |
+| http://localhost:3000/api/stats/pays/british | 200 | 59 recettes britanniques |
+| http://localhost:3000/api/stats/pays/atlantide | 404 | `Aucune recette ne vient de ce pays : atlantide` |
+| http://localhost:3000/api/categories | 200 | 14 catégories avec leur nombre de recettes |
+| http://localhost:3000/api/ingredients | 200 | les 10 ingrédients les plus utilisés (salt : 302 recettes) |
+| http://localhost:3000/api/ingredients?limite=5 | 200 | les 5 premiers |
+| http://localhost:3000/api/ingredients?limite=0 | 400 | `La limite doit être un nombre entier supérieur à 0` (pareil avec `limite=abc`) |
+| http://localhost:3000/api/pays | 200 | 38 pays, du plus au moins représenté |
+| http://localhost:3000/api/pays/british | 200 | 59 recettes |
+| http://localhost:3000/api/pays/atlantide | 404 | `Aucune recette ne vient de ce pays : atlantide` |
+| http://localhost:3000/api/menu | 200 | une entrée, un plat et un dessert, différents à chaque appel |
+| http://localhost:3000/api/nimporte | 404 | `Route inconnue : /api/nimporte` |
+
+Le détail de chaque route est expliqué plus bas.
+
 ## Structure du projet
 
 ```
@@ -387,13 +451,13 @@ Breakfast et Miscellaneous (surtout des sauces et des huiles) ne sont pas utilis
 
 http://localhost:3000/api/ingredients?limite=3
 
-Triés du plus utilisé au moins utilisé, `limite` = 10 par défaut. Les noms sont comptés en minuscules (« Garlic » et « garlic » = le même ingrédient).
+Triés du plus utilisé au moins utilisé, `limite` = 10 par défaut. Les noms sont comptés en minuscules (« Garlic » et « garlic » = le même ingrédient), et une seule fois par recette : certaines recettes listent deux fois le même ingrédient (ex : « Salt » et « salt »), `nbRecettes` est bien un nombre de recettes.
 
 ```json
 [
-  { "nom": "salt", "nbRecettes": 325 },
-  { "nom": "garlic", "nbRecettes": 248 },
-  { "nom": "onion", "nbRecettes": 227 }
+  { "nom": "salt", "nbRecettes": 302 },
+  { "nom": "garlic", "nbRecettes": 237 },
+  { "nom": "onion", "nbRecettes": 223 }
 ]
 ```
 
